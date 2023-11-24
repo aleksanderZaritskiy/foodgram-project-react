@@ -6,8 +6,7 @@ class IsAllowAnyOrReadUserProfile(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return (
-            request.path == '/api/users/me/'
-            or request.user.is_authenticated
+            request.path == '/api/users/me/' or request.user.is_authenticated
         )
 
 

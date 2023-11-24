@@ -70,7 +70,7 @@ class AdminIngridient(admin.ModelAdmin, ImportFileAdmin):
             Ingridient,
             ['name', 'measurement_unit'],
         )
-    
+
 
 class RecipeIngridietInline(admin.TabularInline):
     model = Recipe.ingredients.through

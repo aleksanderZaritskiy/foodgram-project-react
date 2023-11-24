@@ -114,12 +114,10 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'collected_static'
-#STATICFILES_DIRS = ((BASE_DIR / 'static/'),)
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-#FONTS_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 AUTH_USER_MODEL = 'users.User'
 
@@ -130,9 +128,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
     ],
-    'DEFAULT_PAGINATION_CLASS': (
-        'api.paginations.LimitPageNumberPagination'
-    ),
+    'DEFAULT_PAGINATION_CLASS': ('api.paginations.LimitPageNumberPagination'),
     "PAGE_SIZE": 6,
 }
 
@@ -155,6 +151,3 @@ DJOSER = {
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-

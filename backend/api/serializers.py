@@ -55,13 +55,12 @@ class CreateUserSerializer(BaseUserCreateSerializer):
             'password',
         )
         extra_kwargs = {'password': {'write_only': True}}
-    
+
 
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = ('id', 'name', 'color', 'slug')
-        #read_only_fields = ('id', 'name', 'color', 'slug')
 
 
 class IngridientSerializer(serializers.ModelSerializer):
@@ -301,7 +300,7 @@ class SubscriptionsListSerializer(serializers.ModelSerializer):
         recipe_limit = request.query_params.get('recipes_limit')
         recipe = Recipe.objects.filter(author=obj.subscriber)
         if recipe_limit:
-            recipe = recipe[:int(recipe_limit)]
+            recipe = recipe[: int(recipe_limit)]
         return FavouriteShoppingCardSerializer(recipe, many=True).data
 
 

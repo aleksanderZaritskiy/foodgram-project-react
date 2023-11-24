@@ -7,11 +7,10 @@ urlpatterns = [
     path(
         'redoc/',
         TemplateView.as_view(
-            template_name='redoc.html',  
+            template_name='redoc.html',
             extra_context={"schema_url": "openapi-schema"},
         ),
         name='redoc',
     ),
     path('api/', include('api.urls')),
 ]
-

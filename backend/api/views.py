@@ -60,7 +60,7 @@ class IngridientViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Recipe view"""
-    
+
     queryset = Recipe.objects.all()
     serializer_class = WriteRecipeSrializer
     permission_classes = (IsAnyReadUserPostorAuthorUpdateRecipePermissions,)
@@ -151,8 +151,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
         ] = 'Список покупок; filename="shopping_cart.pdf"'
         file = Canvas(response)
         fonts = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), 
-            'font_files/', 
+            os.path.dirname(os.path.abspath(__file__)),
+            'font_files/',
             'Verdana.ttf',
         )
         pdfmetrics.registerFont(TTFont('Verdana', fonts))
@@ -196,7 +196,7 @@ class SubscriptionsCreateDeleteViewSet(
     def subscribe(self, request, pk):
         try:
             check_subsribing = Subscribe.objects.filter(
-                user=self.request.user, subscriber=User.objects.get(id=pk) 
+                user=self.request.user, subscriber=User.objects.get(id=pk)
             )
         except ObjectDoesNotExist:
             return Response(

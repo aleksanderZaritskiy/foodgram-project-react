@@ -96,8 +96,13 @@ class Recipe(NameObjects):
         help_text='Укажите время приготовления',
         validators=(validate_time,),
     )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True
+    )
 
     class Meta:
+        ordering = ('-pub_date',)
         verbose_name_plural = 'Recipes'
         default_related_name = 'recipe'
 
