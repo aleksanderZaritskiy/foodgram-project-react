@@ -183,12 +183,21 @@ class SubscribtionsViewSet(UserViewSet):
     def subscriptions(self, request):
         current_user = get_object_or_404(User, username=request.user)
         subscribtions_list = current_user.user.all()
+        page = self.paginate_queryset(subscribtions_list)
+        if page:
+
+            serializer = SubscriptionsListSerializer(
+                page,
+                context={'request': request},
+                many=True,
+            )
+            return self.get_paginated_response(serializer.data)
+        
         serializer = SubscriptionsListSerializer(
-            subscribtions_list,
+            page,
             context={'request': request},
             many=True,
         )
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
