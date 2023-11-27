@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
+
 from foodgram import constants, validators
 
 
@@ -11,10 +12,9 @@ class User(AbstractUser):
         'Логин',
         help_text='Укажите ваш псевдоним',
         max_length=constants.LENGTH_LOGIN,
-        validators=(validators.validate_name, UnicodeUsernameValidator()),
+        validators=(UnicodeUsernameValidator(),),
         error_messages={'max_length': "больше 150 символов"},
         unique=True,
-        blank=True,
     )
     email = models.EmailField(
         'Почта',
@@ -30,11 +30,13 @@ class User(AbstractUser):
         'Имя',
         help_text='Укажите имя',
         max_length=constants.LENGTH_NAME,
+        validators=(validators.validate_name,),
     )
     last_name = models.CharField(
         'Фамилия',
         help_text='Укажите фамилию',
         max_length=constants.LENGTH_NAME,
+        validators=(validators.validate_name,),
     )
 
     class Meta:
@@ -42,3 +44,20 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class Subscribe(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='user'
+    )
+    subscriber = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='subscriber'
+    )
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(user=models.F('subscriber')),
+                name='Нельзя подписаться на себя',
+            )
+        ]

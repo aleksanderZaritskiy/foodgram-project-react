@@ -1,13 +1,13 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 
-from .validators import validate_time
+from .validators import validate_time, hex_validate
 from .constants import LENGTH_NAME_OBJ, LENGTH_COLOR
 
 User = get_user_model()
 
 
-class NameObjects(models.Model):
+class NameObject(models.Model):
     """Абстрактный класс"""
 
     name = models.CharField(
@@ -21,14 +21,14 @@ class NameObjects(models.Model):
         abstract = True
 
 
-class Tag(NameObjects):
+class Tag(NameObject):
     """Модель Тега"""
 
     color = models.CharField(
         'Цвет',
         help_text='Укажите цвет',
         max_length=LENGTH_COLOR,
-        null=True,
+        validators=(hex_validate,),
         unique=True,
     )
     slug = models.SlugField(
@@ -46,7 +46,7 @@ class Tag(NameObjects):
         return self.name
 
 
-class Ingridient(NameObjects):
+class Ingridient(NameObject):
     measurement_unit = models.CharField(
         'Единица измерения',
         max_length=LENGTH_NAME_OBJ,
@@ -60,12 +60,18 @@ class Ingridient(NameObjects):
 
     class Meta:
         verbose_name_plural = 'Ingridients'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='unique_ingredient_unit',
+            )
+        ]
 
     def __str__(self):
         return self.name
 
 
-class Recipe(NameObjects):
+class Recipe(NameObject):
     """Модель рецепта"""
 
     author = models.ForeignKey(
@@ -82,11 +88,6 @@ class Recipe(NameObjects):
         'Описание рецепта',
         help_text='Опишите рецепт',
     )
-    ingredients = models.ManyToManyField(
-        Ingridient,
-        through='RecipeIngridients',
-        verbose_name='Ингридиенты',
-    )
     tags = models.ManyToManyField(
         Tag,
         verbose_name='Тэг',
@@ -96,13 +97,8 @@ class Recipe(NameObjects):
         help_text='Укажите время приготовления',
         validators=(validate_time,),
     )
-    pub_date = models.DateTimeField(
-        verbose_name='Дата публикации',
-        auto_now_add=True
-    )
 
     class Meta:
-        ordering = ('-pub_date',)
         verbose_name_plural = 'Recipes'
         default_related_name = 'recipe'
 
@@ -112,15 +108,16 @@ class Recipe(NameObjects):
 
 class RecipeIngridients(models.Model):
     recipe = models.ForeignKey(
-        Recipe, on_delete=models.CASCADE, related_name='recipes'
+        Recipe, on_delete=models.CASCADE, related_name='ingredients'
     )
     ingredients = models.ForeignKey(
-        Ingridient, on_delete=models.CASCADE, related_name='ingridient'
+        Ingridient, on_delete=models.CASCADE, related_name='+'
     )
     amount = models.SmallIntegerField('Колличество')
 
 
-class FavouriteRecipe(models.Model):
+class FavoriteRecipe(models.Model):
+    # Пока что, не дошёл как сделать в соотвествии с комментарием.
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -133,8 +130,8 @@ class FavouriteRecipe(models.Model):
     )
 
     class Meta:
-        verbose_name_plural = 'FavouriteRecipes'
-        default_related_name = 'favourite'
+        verbose_name_plural = 'FavoriteRecipes'
+        default_related_name = 'favorite'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'], name='unique_favourite'
@@ -159,22 +156,6 @@ class ShoppingCart(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'], name='unique_purchase'
-            )
-        ]
-
-
-class Subscribe(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='user'
-    )
-    subscriber = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='subscriber'
-    )
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'subscriber'], name='unique_subscribe'
             )
         ]
 

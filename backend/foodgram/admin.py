@@ -11,8 +11,7 @@ from .models import (
     Ingridient,
     Tag,
     RecipeIngridients,
-    FavouriteRecipe,
-    Subscribe,
+    FavoriteRecipe,
     ShoppingCart,
 )
 from .forms import ImportFileForm
@@ -73,7 +72,7 @@ class AdminIngridient(admin.ModelAdmin, ImportFileAdmin):
 
 
 class RecipeIngridietInline(admin.TabularInline):
-    model = Recipe.ingredients.through
+    model = RecipeIngridients
     extra = 1
 
 
@@ -85,14 +84,10 @@ class AdminRecipe(admin.ModelAdmin):
     inlines = (RecipeIngridietInline,)
 
     def favorite_count(self, obj):
-        return obj.favourite.count()
+        return obj.favorite.count()
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
-    pass
-
-
-class AdminSubscribe(admin.ModelAdmin):
     pass
 
 
@@ -118,6 +113,5 @@ admin.site.register(Recipe, AdminRecipe)
 admin.site.register(Ingridient, AdminIngridient)
 admin.site.register(Tag, AdminTag)
 admin.site.register(RecipeIngridients, AdminRecipeIngridients)
-admin.site.register(FavouriteRecipe, AdminFavouriteRecipe)
-admin.site.register(Subscribe, AdminSubscribe)
+admin.site.register(FavoriteRecipe, AdminFavouriteRecipe)
 admin.site.register(ShoppingCart, ShoppingCartAdmin)
