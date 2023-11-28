@@ -117,7 +117,6 @@ class RecipeIngridients(models.Model):
 
 
 class FavoriteRecipe(models.Model):
-    # Пока что, не дошёл как сделать в соотвествии с комментарием.
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -127,11 +126,11 @@ class FavoriteRecipe(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
+        related_name='favorite',
     )
 
     class Meta:
         verbose_name_plural = 'FavoriteRecipes'
-        default_related_name = 'favorite'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'], name='unique_favourite'
@@ -149,10 +148,10 @@ class ShoppingCart(models.Model):
         Recipe,
         on_delete=models.CASCADE,
         verbose_name='Рецепт',
+        related_name='shopping_cart',
     )
 
     class Meta:
-        default_related_name = 'shopping_cart'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'recipe'], name='unique_purchase'
