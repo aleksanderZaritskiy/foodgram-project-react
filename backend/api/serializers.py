@@ -290,12 +290,12 @@ class SubscriptionsListSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.filter(author=obj.subscriber)
         if recipe_limit:
             try:
-                recipe = recipe[: int(recipe_limit)]
+                recipe = recipe[:int(recipe_limit)]
             except ValueError:
                 raise serializers.ValidationError(
                     {
                         'detail': (
-                            'Лимит выдачи рецептов ' 'должен быть целым числом'
+                            'Лимит выдачи рецептов должен быть целым числом'
                         )
                     }
                 )

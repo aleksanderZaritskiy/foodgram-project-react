@@ -27,6 +27,7 @@ from foodgram.models import (
     FavoriteRecipe,
 )
 from users.models import User, Subscribe
+from .paginations import LimitPageNumberPagination
 from .serializers import (
     TagSerializer,
     WriteRecipeSrializer,
@@ -179,17 +180,18 @@ class SubscribtionsViewSet(UserViewSet):
         methods=['GET'],
         detail=False,
         permission_classes=[permissions.IsAuthenticated],
-        serializer_class=SubscriptionsListSerializer,
+        pagination_class=LimitPageNumberPagination
     )
     def subscriptions(self, request):
         current_user = get_object_or_404(User, username=request.user)
         subscribtions_list = current_user.user.all()
         page = self.paginate_queryset(subscribtions_list)
-        if page:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(subscribtions_list, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = SubscriptionsListSerializer(
+            page, many=True,
+            ontext={'request': request},
+        )
+        return self.get_paginated_response(serializer.data)
+
 
     @action(
         methods=['POST', 'DELETE'],
