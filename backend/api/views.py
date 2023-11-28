@@ -188,7 +188,7 @@ class SubscribtionsViewSet(UserViewSet):
         page = self.paginate_queryset(subscribtions_list)
         serializer = SubscriptionsListSerializer(
             page, many=True,
-            ontext={'request': request},
+            сontext={'request': request},
         )
         return self.get_paginated_response(serializer.data)
 
