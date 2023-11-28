@@ -192,7 +192,6 @@ class SubscribtionsViewSet(UserViewSet):
         )
         return self.get_paginated_response(serializer.data)
 
-
     @action(
         methods=['POST', 'DELETE'],
         detail=True,
