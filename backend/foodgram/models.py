@@ -1,7 +1,8 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.validators import RegexValidator
 
-from .validators import validate_time, hex_validate
+from .validators import validate_time
 from .constants import LENGTH_NAME_OBJ, LENGTH_COLOR
 
 User = get_user_model()
@@ -13,6 +14,13 @@ class NameObject(models.Model):
     name = models.CharField(
         'Название',
         help_text='Укажите название',
+        validators=(
+            RegexValidator(
+                regex=r'^[\w.@+-]+$',
+                message='Укажите корректное название',
+                code="invalid_name",
+            ),
+        ),
         max_length=LENGTH_NAME_OBJ,
         unique=True,
     )
@@ -28,7 +36,12 @@ class Tag(NameObject):
         'Цвет',
         help_text='Укажите цвет',
         max_length=LENGTH_COLOR,
-        validators=(hex_validate,),
+        validators=(
+            RegexValidator(
+                regex=r'^#([A-Fa-f0-9]{3,6})$',
+                message='Укажите корректный HEX цвет',
+            ),
+        ),
         unique=True,
     )
     slug = models.SlugField(
@@ -36,7 +49,6 @@ class Tag(NameObject):
         help_text='Укажите слаг, поле должно быть уникальным',
         max_length=LENGTH_NAME_OBJ,
         unique=True,
-        null=True,
     )
 
     class Meta:
@@ -51,11 +63,6 @@ class Ingridient(NameObject):
         'Единица измерения',
         max_length=LENGTH_NAME_OBJ,
         help_text='Укажите единицу измерения',
-    )
-    name = models.CharField(
-        'Название',
-        help_text='Укажите название',
-        max_length=LENGTH_NAME_OBJ,
     )
 
     class Meta:
@@ -100,7 +107,7 @@ class Recipe(NameObject):
 
     class Meta:
         verbose_name_plural = 'Recipes'
-        default_related_name = 'recipe'
+        default_related_name = 'recipes'
 
     def __str__(self):
         return self.name
@@ -113,7 +120,15 @@ class RecipeIngridients(models.Model):
     ingredients = models.ForeignKey(
         Ingridient, on_delete=models.CASCADE, related_name='+'
     )
-    amount = models.SmallIntegerField('Колличество')
+    amount = models.SmallIntegerField('количество')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredients'],
+                name='unique_recipe_ingredients',
+            ),
+        ]
 
 
 class FavoriteRecipe(models.Model):

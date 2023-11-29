@@ -1,10 +1,10 @@
 import os
+
 from django.db.models import Sum
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from djoser.views import UserViewSet
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -17,6 +17,7 @@ from rest_framework.mixins import (
 )
 from rest_framework.viewsets import GenericViewSet
 
+from .paginations import LimitPageNumberPagination
 from .filters import RecipeFilter
 from .permissions import GreateOrUpdateOrReadOnlyRecipePermissions
 from foodgram.models import (
@@ -27,7 +28,6 @@ from foodgram.models import (
     FavoriteRecipe,
 )
 from users.models import User, Subscribe
-from .paginations import LimitPageNumberPagination
 from .serializers import (
     TagSerializer,
     WriteRecipeSrializer,
@@ -175,12 +175,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return self.get_pdf(ingredients_data)
 
 
-class SubscribtionsViewSet(UserViewSet):
+class SubscribtionsViewSet(GenericViewSet):
     @action(
         methods=['GET'],
         detail=False,
         permission_classes=[permissions.IsAuthenticated],
-        pagination_class=LimitPageNumberPagination
+        pagination_class=LimitPageNumberPagination,
     )
     def subscriptions(self, request):
         current_user = get_object_or_404(User, username=request.user)
@@ -198,10 +198,10 @@ class SubscribtionsViewSet(UserViewSet):
         detail=True,
         permission_classes=[permissions.IsAuthenticated],
     )
-    def subscribe(self, request, id):
+    def subscribe(self, request, pk):
         try:
             check_subsribing = Subscribe.objects.filter(
-                user=self.request.user, subscriber=User.objects.get(id=id)
+                user=self.request.user, subscriber=User.objects.get(id=pk)
             )
         except ObjectDoesNotExist:
             return Response(
@@ -209,12 +209,12 @@ class SubscribtionsViewSet(UserViewSet):
                 status=status.HTTP_404_NOT_FOUND,
             )
         if request.method == 'POST':
-            if self.request.user.id == int(id):
+            if self.request.user.id == int(pk):
                 return Response(
                     {'default': 'Нельзя подписаться на себя'},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            subscriber = get_object_or_404(User, id=id)
+            subscriber = get_object_or_404(User, id=pk)
             if check_subsribing.exists():
                 return Response(
                     {'default': 'Вы уже подписаны'},

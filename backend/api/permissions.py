@@ -13,6 +13,6 @@ class GreateOrUpdateOrReadOnlyRecipePermissions(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return (
             request.method in permissions.SAFE_METHODS
-            or (request.method == ['POST'] and request.user.is_authenticated)
+            or request.user.is_authenticated
             or request.user == obj.author
         )
