@@ -15,7 +15,6 @@ class NameObject(models.Model):
         help_text='Укажите название',
         validators=(validate_name,),
         max_length=LENGTH_NAME_OBJ,
-        
         unique=True,
     )
 

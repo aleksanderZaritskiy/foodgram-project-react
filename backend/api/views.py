@@ -11,10 +11,6 @@ from reportlab.pdfbase.ttfonts import TTFont
 from rest_framework import viewsets, filters, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.mixins import (
-    ListModelMixin,
-    RetrieveModelMixin,
-)
 from rest_framework.viewsets import GenericViewSet
 
 from .paginations import LimitPageNumberPagination

@@ -11,16 +11,15 @@ def validate_time(data):
 
 def validate_name(data):
     validate = RegexValidator(
-        r'^[а-яА-ЯёЁa-zA-Z]*$', (
-            'Поле должно содержать только буквы кириллицы/латиницы'
-        ),
+        r'^[а-яА-ЯёЁa-zA-Z]*$',
+        ('Поле должно содержать только буквы кириллицы/латиницы'),
     )
     return validate(data)
 
 
 def validate_color(data):
     validate = RegexValidator(
-        regex=r'^#([A-Fa-f0-9]{3,6})$', 
+        regex=r'^#([A-Fa-f0-9]{3,6})$',
         message='Укажите корректный HEX цвет',
         code='invalid_HEX_color',
     )

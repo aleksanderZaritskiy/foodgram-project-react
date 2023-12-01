@@ -64,5 +64,5 @@ class Subscribe(models.Model):
             models.CheckConstraint(
                 check=~models.Q(user=models.F('subscriber')),
                 name='Нельзя подписаться на себя',
-            )
+            ),
         ]
