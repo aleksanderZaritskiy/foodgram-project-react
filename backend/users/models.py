@@ -1,9 +1,9 @@
-from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
 
 from foodgram import constants
+from foodgram.validators import validate_name
 
 
 class User(AbstractUser):
@@ -31,13 +31,13 @@ class User(AbstractUser):
         'Имя',
         help_text='Укажите имя',
         max_length=constants.LENGTH_NAME,
-        validators=(RegexValidator,),
+        validators=(validate_name,),
     )
     last_name = models.CharField(
         'Фамилия',
         help_text='Укажите фамилию',
         max_length=constants.LENGTH_NAME,
-        validators=(RegexValidator,),
+        validators=(validate_name,),
     )
 
     class Meta:
@@ -64,5 +64,5 @@ class Subscribe(models.Model):
             models.CheckConstraint(
                 check=~models.Q(user=models.F('subscriber')),
                 name='Нельзя подписаться на себя',
-            ),
+            )
         ]

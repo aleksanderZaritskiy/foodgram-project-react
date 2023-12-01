@@ -1,8 +1,7 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.core.validators import RegexValidator
 
-from .validators import validate_time
+from .validators import validate_time, validate_color, validate_name
 from .constants import LENGTH_NAME_OBJ, LENGTH_COLOR
 
 User = get_user_model()
@@ -14,14 +13,9 @@ class NameObject(models.Model):
     name = models.CharField(
         'Название',
         help_text='Укажите название',
-        validators=(
-            RegexValidator(
-                regex=r'^[\w.@+-]+$',
-                message='Укажите корректное название',
-                code="invalid_name",
-            ),
-        ),
+        validators=(validate_name,),
         max_length=LENGTH_NAME_OBJ,
+        
         unique=True,
     )
 
@@ -36,12 +30,7 @@ class Tag(NameObject):
         'Цвет',
         help_text='Укажите цвет',
         max_length=LENGTH_COLOR,
-        validators=(
-            RegexValidator(
-                regex=r'^#([A-Fa-f0-9]{3,6})$',
-                message='Укажите корректный HEX цвет',
-            ),
-        ),
+        validators=(validate_color,),
         unique=True,
     )
     slug = models.SlugField(
@@ -104,8 +93,13 @@ class Recipe(NameObject):
         help_text='Укажите время приготовления',
         validators=(validate_time,),
     )
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации',
+        auto_now_add=True,
+    )
 
     class Meta:
+        ordering = ('-pub_date',)
         verbose_name_plural = 'Recipes'
         default_related_name = 'recipes'
 

@@ -38,7 +38,7 @@ from .serializers import (
 )
 
 
-class TagViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
+class TagViewSet(viewsets.ReadOnlyModelViewSet):
     """Tag view"""
 
     queryset = Tag.objects.all()
@@ -47,7 +47,7 @@ class TagViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
     lookup_field = 'id'
 
 
-class IngridientViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
+class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
     """Ingredient view"""
 
     queryset = Ingridient.objects.all()
