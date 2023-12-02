@@ -2,7 +2,7 @@ from django.core.validators import RegexValidator, MinValueValidator
 
 
 validate_time = MinValueValidator(
-    limit_value=1, 
+    limit_value=1,
     message='Время приготовления не может быть меньше минуты',
 )
 
@@ -18,4 +18,3 @@ validate_color = RegexValidator(
     message='Укажите корректный HEX цвет',
     code='invalid_HEX_color',
 )
-
