@@ -80,8 +80,8 @@ server {
 Демо-версия проекта доступна по адресу: `https://https://deployfoodgram.sytes.net/`
 
 Данные для входа в админ-зону:
-    Почта: admin@mail.ru
-    Пароль: admin
+    почта: admin@mail.ru,
+    пароль: admin
     
 ## Автор проекта
 
