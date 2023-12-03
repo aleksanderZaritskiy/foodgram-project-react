@@ -77,7 +77,7 @@ server {
 
 ---
 
-Демо-версия проекта доступна по адресу: `https://https://deployfoodgram.sytes.net/`
+Демо-версия проекта доступна по адресу: `https://deployfoodgram.sytes.net/`
 
 Данные для входа в админ-зону:
     почта: admin@mail.ru,
