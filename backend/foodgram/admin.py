@@ -99,7 +99,7 @@ class AdminRecipe(admin.ModelAdmin):
         ]:
             if field[1]:
                 return super().response_add(request, obj)
-        raise ValidationError('Укажите ингредиент')
+        raise ValidationError('Укажите ингредиенты')
 
     def response_change(self, request, obj):
         ingredients_count = 0
@@ -115,7 +115,7 @@ class AdminRecipe(admin.ModelAdmin):
             ):
                 ingredients_count += 1
         if not ingredients_count:
-            raise ValidationError('Укажите ингредиент')
+            raise ValidationError('Укажите ингредиенты')
         return super().response_add(request, obj)
 
 
