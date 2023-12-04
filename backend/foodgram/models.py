@@ -111,11 +111,19 @@ class RecipeIngridients(models.Model):
         Recipe, on_delete=models.CASCADE, related_name='ingredients'
     )
     ingredients = models.ForeignKey(
-        Ingridient, on_delete=models.CASCADE, related_name='+'
+        Ingridient,
+        verbose_name='Ингредиенты',
+        on_delete=models.CASCADE,
+        related_name='+',
     )
-    amount = models.SmallIntegerField('количество')
+    amount = models.SmallIntegerField(
+        'количество',
+        help_text='Укажите количество ингредиента',
+        validators=(validate_time,),
+    )
 
     class Meta:
+        verbose_name_plural = 'RecipeIngridients'
         constraints = [
             models.UniqueConstraint(
                 fields=['recipe', 'ingredients'],

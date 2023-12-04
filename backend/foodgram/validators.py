@@ -3,7 +3,7 @@ from django.core.validators import RegexValidator, MinValueValidator
 
 validate_time = MinValueValidator(
     limit_value=1,
-    message='Время приготовления не может быть меньше минуты',
+    message='Укажите значение 1 и более',
 )
 
 

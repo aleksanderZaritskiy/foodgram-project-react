@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse, path
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 
 from .models import (
     Recipe,
@@ -87,6 +88,36 @@ class AdminRecipe(admin.ModelAdmin):
     def favorite_count(self, obj):
         return obj.favorite.count()
 
+    def response_add(self, request, obj):
+        """ Валидация для поля с ингредиентами """
+        for field in [
+            items
+            for items in request.POST.items()
+            if items[0].startswith('ingredients')
+            and items[0].endswith('ingredients')
+            and items[0].split('-')[1].isdigit()
+        ]:
+            if field[1]:
+                return super().response_add(request, obj)
+        raise ValidationError('Укажите ингредиент')
+
+    def response_change(self, request, obj):
+        ingredients_count = 0
+        for field in [
+            items
+            for items in request.POST.items()
+            if items[0].startswith('ingredients')
+            and items[0].endswith('ingredients')
+            and items[0].split('-')[1].isdigit()
+        ]:
+            if field[1] and not request.POST.get(
+                f'ingredients-{field[0].split("-")[1]}-DELETE'
+            ):
+                ingredients_count += 1
+        if not ingredients_count:
+            raise ValidationError('Укажите ингредиент')
+        return super().response_add(request, obj)
+
 
 class ShoppingCartAdmin(admin.ModelAdmin):
     pass
@@ -100,12 +131,6 @@ class AdminTag(admin.ModelAdmin):
     )
 
 
-class AdminRecipeIngridients(admin.ModelAdmin):
-    list_display = ('id', 'recipe', 'ingredients', 'amount')
-    list_display_links = ('recipe',)
-    search_fields = ('recipe',)
-
-
 class AdminFavouriteRecipe(admin.ModelAdmin):
     pass
 
@@ -113,6 +138,5 @@ class AdminFavouriteRecipe(admin.ModelAdmin):
 admin.site.register(Recipe, AdminRecipe)
 admin.site.register(Ingridient, AdminIngridient)
 admin.site.register(Tag, AdminTag)
-admin.site.register(RecipeIngridients, AdminRecipeIngridients)
 admin.site.register(FavoriteRecipe, AdminFavouriteRecipe)
 admin.site.register(ShoppingCart, ShoppingCartAdmin)
