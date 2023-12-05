@@ -26,6 +26,7 @@ class GetUserSerializer(serializers.ModelSerializer):
             'last_name',
             'is_subscribed',
         )
+        read_only_fields = ('is_subscribed',)
 
     def get_is_subscribed(self, obj):
         current_user = self.context.get('request').user
@@ -168,30 +169,60 @@ class WriteRecipeSrializer(serializers.ModelSerializer):
         )
         return serializer.data
 
-    def validate(self, data):
-        ingredients = self.initial_data.get('ingredients')
-        id_ingredients = []
-        for ingredient in ingredients:
-            current_ingredient_id = ingredient.get('id')
-            if not Ingridient.objects.filter(
-                id=current_ingredient_id
-            ).exists():
-                raise serializers.ValidationError('Такого нет ингредиента')
-            if current_ingredient_id in id_ingredients:
-                raise serializers.ValidationError(
-                    'Уберите дублирующиеся ингредиенты'
-                )
-            id_ingredients.append(current_ingredient_id)
-        return data
+    def _checking_ingredient_tag_data(self, data, model, detail):
+        """Валидация полей игредиентов и тегов"""
 
-    def create(self, validated_data):
+        obj_id_list = []
+        for tmp_data in data:
+            if isinstance(tmp_data, dict):
+                obj_id = tmp_data.get('id')
+                obj_amount = tmp_data.get('amount')
+                if not obj_amount:
+                    raise serializers.ValidationError(
+                        detail['amount_not_exists'],
+                    )
+            else:
+                obj_id = tmp_data
+            if not model.objects.filter(id=obj_id).exists():
+                raise serializers.ValidationError(detail['not_exists'])
+            if obj_id in obj_id_list:
+                raise serializers.ValidationError(detail['dublicate'])
+            obj_id_list.append(obj_id)
+
+    def validate(self, data):
         if (
             'ingredients' not in self.initial_data
             or 'tags' not in self.initial_data
         ):
             raise serializers.ValidationError(
+                {'detail': 'Нужно указать поля ingredients/tags'}
+            )
+        ingredients = self.initial_data.get('ingredients')
+        tags = self.initial_data.get('tags')
+        if not tags or not ingredients:
+            raise serializers.ValidationError(
                 {'detail': 'Нужно заполнить поля ingredients/tags'}
             )
+        self._checking_ingredient_tag_data(
+            ingredients,
+            Ingridient,
+            {
+                'not_exists': 'Такого нет ингредиента',
+                'dublicate': 'Уберите дублирующиеся ингредиенты',
+                'amount_not_exists': 'Укажите количество больше или равно 1',
+            },
+        )
+        self._checking_ingredient_tag_data(
+            tags,
+            Tag,
+            {
+                'not_exists': 'Такого нет тэга',
+                'dublicate': 'Уберите дублирующиеся тэги',
+            },
+        )
+        return data
+
+    def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
         validated_data['author'] = self.context['request'].user
@@ -220,6 +251,7 @@ class WriteRecipeSrializer(serializers.ModelSerializer):
             tags_data = validated_data.pop('tags')
             instance.tags.set(tags_data)
         if 'ingredients' in validated_data:
+            RecipeIngridients.objects.filter(recipe=instance).delete()
             ingredients_data = validated_data.pop('ingredients')
 
             for data in ingredients_data:
@@ -284,6 +316,7 @@ class SubscriptionsListSerializer(serializers.ModelSerializer):
         ).exists()
 
     def get_recipes(self, obj):
+        print(self.context.values)
         request = self.context['request']
         recipe_limit = request.query_params.get('recipes_limit')
         recipe = Recipe.objects.filter(author=obj.subscriber)
@@ -294,7 +327,7 @@ class SubscriptionsListSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {
                         'detail': (
-                            'Лимит выдачи рецептов должен быть целым числом'
+                            'Лимит выдачи рецептов ' 'должен быть целым числом'
                         )
                     }
                 )

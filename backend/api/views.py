@@ -1,6 +1,5 @@
 import os
 
-from django.db.models import Sum
 from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import get_object_or_404
 from django.http import HttpResponse
@@ -8,13 +7,17 @@ from django_filters.rest_framework import DjangoFilterBackend
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from rest_framework import viewsets, filters, permissions, status
+from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.mixins import (
+    ListModelMixin,
+    RetrieveModelMixin,
+)
 from rest_framework.viewsets import GenericViewSet
 
 from .paginations import LimitPageNumberPagination
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientSearchFilter
 from .permissions import GreateOrUpdateOrReadOnlyRecipePermissions
 from foodgram.models import (
     Tag,
@@ -34,7 +37,7 @@ from .serializers import (
 )
 
 
-class TagViewSet(viewsets.ReadOnlyModelViewSet):
+class TagViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
     """Tag view"""
 
     queryset = Tag.objects.all()
@@ -43,14 +46,14 @@ class TagViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'id'
 
 
-class IngridientViewSet(viewsets.ReadOnlyModelViewSet):
+class IngridientViewSet(ListModelMixin, RetrieveModelMixin, GenericViewSet):
     """Ingredient view"""
 
     queryset = Ingridient.objects.all()
     serializer_class = IngridientSerializer
     pagination_class = None
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('^name',)
+    filter_backends = (DjangoFilterBackend,)
+    filterset_class = IngredientSearchFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -141,9 +144,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         pdfmetrics.registerFont(TTFont('Verdana', fonts))
         file.setFont("Verdana", 15)
-        'here'
-        for ingredient in ingredients:
-            file.drawString(100, ingredient, ingredients.get(ingredient))
+        index = len(ingredients)
+        for name in ingredients:
+            file.drawString(
+                100,
+                ingredients[name]['reject'],
+                f'{index}) {name} ({ingredients[name]["m_unit"]})'
+                f' — {ingredients[name]["amount"]}',
+            )
+            index -= 1
         file.showPage()
         file.save()
         return response
@@ -155,23 +164,34 @@ class RecipeViewSet(viewsets.ModelViewSet):
     )
     def download_shopping_cart(self, request):
         recipes = Recipe.objects.filter(shopping_cart__user=request.user)
+        reject = 700
         ingredients_data = {}
         for recipe in recipes:
             tmp_ingredients = recipe.ingredients.values(
                 'ingredients__name',
                 'ingredients__measurement_unit',
-            ).annotate(sum_amount=Sum('amount'))
-            reject = 700
+                'amount',
+            )
             for ingredients in tmp_ingredients:
                 name = ingredients['ingredients__name']
-                m_unit = ingredients['ingredients__measurement_unit']
-                amount = ingredients['sum_amount']
-                ingredients_data[reject] = f'*{name}, ({m_unit}) — {amount}'
+                if name in ingredients_data:
+                    amount = ingredients['amount']
+                    ingredients_data[name]['amount'] += amount
+                else:
+                    m_unit = ingredients['ingredients__measurement_unit']
+                    amount = ingredients['amount']
+                    ingredients_data[name] = {
+                        'reject': reject,
+                        'm_unit': m_unit,
+                        'amount': amount,
+                    }
                 reject += 30
         return self.get_pdf(ingredients_data)
 
 
-class SubscribtionsViewSet(GenericViewSet):
+class SubscribtionsViewSet(
+    GenericViewSet,
+):
     @action(
         methods=['GET'],
         detail=False,

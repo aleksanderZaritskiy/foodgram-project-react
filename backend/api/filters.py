@@ -1,7 +1,18 @@
 import django_filters
 
-from foodgram.models import Recipe
+from foodgram.models import Recipe, Ingridient
 from users.models import User
+
+
+class IngredientSearchFilter(django_filters.rest_framework.FilterSet):
+    name = django_filters.rest_framework.CharFilter(
+        field_name='name',
+        lookup_expr='istartswith',
+    )
+
+    class Meta:
+        model = Ingridient
+        fields = ('name',)
 
 
 class RecipeFilter(django_filters.rest_framework.FilterSet):
