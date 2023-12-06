@@ -1,12 +1,12 @@
 import csv
 import json
 
+from django import forms
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse, path
 from django.contrib import messages
-from django.core.exceptions import ValidationError
 
 from .models import (
     Recipe,
@@ -73,9 +73,28 @@ class AdminIngridient(admin.ModelAdmin, ImportFileAdmin):
         )
 
 
+class RecipeIngredientsFormSet(forms.BaseInlineFormSet):
+
+    def clean(self):
+        super().clean()
+        try:
+            if self.cleaned_data:
+                pass
+        except AttributeError:
+            raise forms.ValidationError('Укажите минимум 1 ингредиент')
+        if self.deleted_forms:
+            for data in self.cleaned_data:
+                if data and not data.get('DELETE'):
+                    return True
+            raise forms.ValidationError(
+                'Нужно оставить минимум 1 ингредиент'
+            )
+
+
 class RecipeIngridietInline(admin.TabularInline):
     model = RecipeIngridients
-    extra = 1
+    min_num = 1
+    formset = RecipeIngredientsFormSet
 
 
 class AdminRecipe(admin.ModelAdmin):
@@ -87,36 +106,6 @@ class AdminRecipe(admin.ModelAdmin):
 
     def favorite_count(self, obj):
         return obj.favorite.count()
-
-    def response_add(self, request, obj):
-        """ Валидация для поля с ингредиентами """
-        for field in [
-            items
-            for items in request.POST.items()
-            if items[0].startswith('ingredients')
-            and items[0].endswith('ingredients')
-            and items[0].split('-')[1].isdigit()
-        ]:
-            if field[1]:
-                return super().response_add(request, obj)
-        raise ValidationError('Укажите ингредиенты')
-
-    def response_change(self, request, obj):
-        ingredients_count = 0
-        for field in [
-            items
-            for items in request.POST.items()
-            if items[0].startswith('ingredients')
-            and items[0].endswith('ingredients')
-            and items[0].split('-')[1].isdigit()
-        ]:
-            if field[1] and not request.POST.get(
-                f'ingredients-{field[0].split("-")[1]}-DELETE'
-            ):
-                ingredients_count += 1
-        if not ingredients_count:
-            raise ValidationError('Укажите ингредиенты')
-        return super().response_add(request, obj)
 
 
 class ShoppingCartAdmin(admin.ModelAdmin):
